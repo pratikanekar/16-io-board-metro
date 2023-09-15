@@ -1,4 +1,5 @@
 import socket
+import subprocess
 from time import sleep
 from loguru import logger
 
@@ -106,13 +107,29 @@ def relay_off(send_off_relay, slave_id, on_change_data):
         logger.error(f"{e}")
 
 
+def ping_status(IPAddress):
+    try:
+        res = subprocess.Popen(f"ping -c 1 -w5 {IPAddress}", shell=True, stdout=subprocess.PIPE)
+        res.wait()
+        return_code = res.poll()
+        if int(return_code) == 0:
+            return True
+        else:
+            return False
+    except Exception as e:
+        logger.error(f"{e}")
+
+
 if __name__ == '__main__':
+    sleep(2)
+    while not ping_status(IPAddress):
+        logger.info(f"Ping to {IPAddress} failed. Retrying...")
     socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     # socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     logger.info("socket is open waiting for connection")
     socket.connect((IPAddress, port))
     logger.info(f"connected successfully to {IPAddress} and port {port}")
-    connected_slaves = 1
+    connected_slaves = 2
     relay = 8
     slave_id = 1
     while True:
@@ -124,7 +141,7 @@ if __name__ == '__main__':
                     send_on_relay = find_relay_on_crc(slave_id, on_change_data)  # calculate crc16 for relay on
                     relay_on(send_on_relay, slave_id, on_change_data)  # it is used to on relays on slaves
                     sleep(5)
-            if slave_id == 1:
+            if slave_id == connected_slaves:
                 slave_id = 1
                 for slave_id in range(1, connected_slaves + 1):
                     for on_change_data in range(0, relay):
