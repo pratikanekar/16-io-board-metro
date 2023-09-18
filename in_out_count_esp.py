@@ -120,6 +120,40 @@ def ping_status(IPAddress):
         logger.error(f"{e}")
 
 
+def in_direction(connected_slaves):
+    relay = 8
+    try:
+        for slave_id in range(1, connected_slaves + 1):
+            for on_change_data in range(0, relay):
+                send_on_relay = find_relay_on_crc(slave_id, on_change_data)  # calculate crc16 for relay on
+                relay_on(send_on_relay, slave_id, on_change_data)  # it is used to on relays on slaves
+                sleep(0.5)
+                send_off_relay = find_relay_off_crc(slave_id, on_change_data)  # calculate crc16 for relay off
+                relay_off(send_off_relay, slave_id, on_change_data)  # it is used to off relays on slaves
+                sleep(1)
+                if on_change_data % 2 == 1:
+                    sleep(2)  # Delay between batches of two relays
+    except Exception as e:
+        logger.error(f"{e}")
+
+
+def out_direction(connected_slaves):
+    relay = 8
+    try:
+        for slave_id in range(connected_slaves, 0, -1):
+            for on_change_data in range(relay - 1, -1, -1):
+                send_on_relay = find_relay_on_crc(slave_id, on_change_data)  # calculate crc16 for relay on
+                relay_on(send_on_relay, slave_id, on_change_data)  # it is used to on relays on slaves
+                sleep(0.5)
+                send_off_relay = find_relay_off_crc(slave_id, on_change_data)  # calculate crc16 for relay off
+                relay_off(send_off_relay, slave_id, on_change_data)  # it is used to off relays on slaves
+                sleep(1)
+                if on_change_data % 2 == 0:
+                    sleep(2)  # Delay between batches of two relays
+    except Exception as e:
+        logger.error(f"{e}")
+
+
 if __name__ == '__main__':
     sleep(2)
     while not ping_status(IPAddress):
@@ -130,21 +164,13 @@ if __name__ == '__main__':
     socket.connect((IPAddress, port))
     logger.info(f"connected successfully to {IPAddress} and port {port}")
     connected_slaves = 2
-    relay = 8
     slave_id = 1
     while True:
         try:
-            for slave_id in range(1, connected_slaves + 1):
-                for on_change_data in range(0, relay):
-                    send_on_relay = find_relay_on_crc(slave_id, on_change_data)  # calculate crc16 for relay on
-                    relay_on(send_on_relay, slave_id, on_change_data)  # it is used to on relays on slaves
-                    sleep(0.5)
-                    send_off_relay = find_relay_off_crc(slave_id, on_change_data)  # calculate crc16 for relay off
-                    relay_off(send_off_relay, slave_id, on_change_data)  # it is used to off relays on slaves
-                    sleep(2)
-                    if on_change_data % 2 == 1:
-                        sleep(2)  # Delay between batches of two relays
-
+            logger.info(f"Now Started testing of IN1 - IN8 Doors Registers")
+            in_direction(connected_slaves)
+            logger.info(f"Now Started testing of OUT8 - OUT1 Doors Registers")
+            out_direction(connected_slaves)
         except Exception as e:
             logger.error(f'{e}')
         finally:
