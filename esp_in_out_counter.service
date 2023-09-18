@@ -1,0 +1,12 @@
+[Unit]
+Description=Sixteen Relay Board Metro
+
+[Service]
+# Command to execute when the service is started
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/16-io-board-metro
+ExecStart=/home/pi/16-io-board-metro/venv/bin/python3  /home/pi/16-io-board-metro/in_out_count_esp.py
+
+[Install]
+WantedBy=default.target
