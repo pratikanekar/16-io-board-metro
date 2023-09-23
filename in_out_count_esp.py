@@ -175,6 +175,7 @@ if __name__ == '__main__':
                     out_direction(connected_slaves)
                 except Exception as e:
                     logger.error(f'{e}')
+                    break
                 finally:
                     slave_id = slave_id + 1
         except Exception as e:
