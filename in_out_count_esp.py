@@ -155,23 +155,31 @@ def out_direction(connected_slaves):
 
 
 if __name__ == '__main__':
-    sleep(2)
-    while not ping_status(IPAddress):
-        logger.info(f"Ping to {IPAddress} failed. Retrying...")
-    socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    # socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    logger.info("socket is open waiting for connection")
-    socket.connect((IPAddress, port))
-    logger.info(f"connected successfully to {IPAddress} and port {port}")
-    connected_slaves = 2
-    slave_id = 1
     while True:
         try:
-            logger.info(f"Now Started testing of IN1 - IN8 Doors Registers")
-            in_direction(connected_slaves)
-            logger.info(f"Now Started testing of OUT8 - OUT1 Doors Registers")
-            out_direction(connected_slaves)
+            sleep(2)
+            while not ping_status(IPAddress):
+                logger.info(f"Ping to {IPAddress} failed. Retrying...")
+            socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            logger.info("socket is open waiting for connection")
+            socket.connect((IPAddress, port))
+            logger.info(f"connected successfully to {IPAddress} and port {port}")
+            connected_slaves = 2
+            slave_id = 1
+            while True:
+                try:
+                    logger.info(f"Now Started testing of IN1 - IN8 Doors Registers")
+                    in_direction(connected_slaves)
+                    logger.info(f"Now Started testing of OUT8 - OUT1 Doors Registers")
+                    out_direction(connected_slaves)
+                except Exception as e:
+                    logger.error(f'{e}')
+                finally:
+                    slave_id = slave_id + 1
         except Exception as e:
             logger.error(f'{e}')
         finally:
-            slave_id = slave_id + 1
+            socket.close()
+            logger.info("Socket connetion close")
+        sleep(3)
